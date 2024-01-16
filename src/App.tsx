@@ -1,10 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 import './App.css';
 import { data, DataItem } from './data';
-
-
+import { handleChipRemove, handleInputKeyDown, handleItemClick } from './utils';
 
 const App: React.FC = () => {
+
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [showDataList, setShowDataList] = useState(false);
   const [selectedItems, setSelectedItems] = useState<DataItem[]>([]);
@@ -12,35 +12,16 @@ const App: React.FC = () => {
   const [highLight, setHighlight] = useState<DataItem | null>(null)
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    
-    if (e.key === 'Backspace' && searchTerm === '') {
-      if (selectedItems.length > 0) {
-          // If there is a highlighted item, remove it
-          if (highLight !== null) {
-              const updatedSelectedItems = selectedItems.filter(item => item !== highLight);
-              setFilteredData([...filteredData, highLight]); // Add the removed item back to filteredData
-              setHighlight(null); // Clear the highlight
-              setSelectedItems(updatedSelectedItems);
-          } else if (selectedItems.length > 0) {
-              // If there is no highlight, but there are selected items,
-              // highlight the last selected item
-              setHighlight(selectedItems[selectedItems.length - 1]);
-          }
-      }
-  } 
+  const onInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => { 
+    handleInputKeyDown(e,searchTerm,selectedItems,highLight,setFilteredData,setHighlight,setSelectedItems,filteredData)
   };
 
-   const handleItemClick = (item: DataItem) => {
-    setSelectedItems([...selectedItems, item]);
-    setFilteredData(filteredData.filter((i) => i !== item));
-    setShowDataList(false)
+   const onItemClick = (item: DataItem) => {
+    handleItemClick(item, selectedItems, setFilteredData, setSelectedItems, filteredData);
   };
 
-  const handleChipRemove = (removedItem: DataItem) => {
-    setSelectedItems(selectedItems.filter((item) => item !== removedItem));
-    setFilteredData([...filteredData, removedItem]);
-    setShowDataList(false)
+  const onChipRemove = (removedItem: DataItem) => {
+    handleChipRemove(removedItem, setSelectedItems, filteredData, selectedItems, setFilteredData);
   };
 
   const handleInputFocus = () => {
@@ -54,7 +35,7 @@ const App: React.FC = () => {
         setShowDataList(false);
       }
     };
-
+    
     // Add global click event listener
     document.addEventListener('click', handleOutsideClick);
 
@@ -75,7 +56,7 @@ const App: React.FC = () => {
                 <img src={item.profileUrl} alt='user profile' className='bg-blue-100 w-10 h-10 rounded-full' />
                 <p >{item.name}</p>
                 <span
-                  onClick={() => handleChipRemove(item)}
+                  onClick={() => onChipRemove(item)}
                   className="cursor-pointer  rounded-full h-5 w-5 flex items-center justify-center font-bold"
                 >
                   X
@@ -84,14 +65,13 @@ const App: React.FC = () => {
             ))}
           </ul>
         )}
-
         <div className='' ref={inputRef}>
           <input
             className='p-2 rounded  border-none focus:outline-none'
             type="text"
             placeholder="Search"
             onFocus={handleInputFocus}
-            onKeyDown={handleInputKeyDown}
+            onKeyDown={onInputKeyDown}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
           {showDataList &&
@@ -101,7 +81,7 @@ const App: React.FC = () => {
                 .map((item, index) => (
                   <li
                     key={index}
-                    onClick={() => handleItemClick(item)}
+                    onClick={() => onItemClick(item)}
                     className="cursor-pointer flex gap-2 items-center bg-gray-100 hover:bg-gray-200 w-full p-2  "
                   >
                     <img src={item.profileUrl} alt='user profile' className='bg-blue-100 w-10 h-10 rounded-full' />
